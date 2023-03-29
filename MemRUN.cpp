@@ -1,7 +1,7 @@
 //
 // Created by rauchy on 2022/3/6.
 //
-
+#include <string>
 #include "MemRUN.h"
 
 MemRUN::MemRUN(unsigned int element_length,unsigned int v_threshold,std::string k):element_length(element_length),key(k),vsize_threshold(v_threshold){

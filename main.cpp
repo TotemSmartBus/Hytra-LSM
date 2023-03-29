@@ -6,17 +6,12 @@
 #include <time.h>
 extern LSM* load_lsm_config();
 
-void test_lsm();
-void test_load_config();
-void test_insert_kv(LSM* l);
 int main() {
 
     LSM* l = load_lsm_config();
-    /*Server s(l);
+    Server s(l);
     s.init();
-    s.start();*/
-    test_insert_kv(l);
-    delete l;
+    s.start();
     return 0;
 
 }

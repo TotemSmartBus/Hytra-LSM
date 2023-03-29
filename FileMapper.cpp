@@ -23,7 +23,7 @@ FileMapper::FileMapper(std::string file_name,int element_size_threshold,int elem
 
 FileMapper::~FileMapper(){
 
-    remove(("index_file/"+_file_name).c_str());
+//    remove(("index_file/"+_file_name).c_str());
 
 }
 
@@ -66,6 +66,10 @@ void FileMapper::clear(){
 // 按批次读取文件，加快读取速度
 std::vector<std::string> FileMapper::read_all_element(){
     std::vector<std::string> s;
+    if (_fd < 0) {
+        return s;
+    }
+
     open_file();
     ftruncate(_fd,file_size);
     do_map();
@@ -102,7 +106,7 @@ void FileMapper::adjust_size(unsigned int new_size) {
 }
 
 void FileMapper::do_map() {
-    _fmap = (char*) mmap(0,file_size,PROT_READ | PROT_WRITE, MAP_SHARED, _fd, 0);
+    _fmap = (char*) mmap(NULL, file_size,PROT_READ | PROT_WRITE, MAP_SHARED, _fd, 0);
 }
 
 void FileMapper::un_map() {
@@ -113,7 +117,10 @@ void FileMapper::un_map() {
 }
 
 void FileMapper::open_file() {
-    _fd = open(("index_file/"+_file_name).c_str(),O_RDWR | O_CREAT ,(mode_t) 0600);
+    _fd = open(("index_file/"+_file_name).c_str(),O_RDWR | O_CREAT | O_TRUNC ,(mode_t) 0600);
+    if(_fd == -1){
+        perror(("Create file failed " + _file_name).c_str());
+    }
 }
 
 void FileMapper::close_file() {
@@ -123,13 +130,13 @@ void FileMapper::close_file() {
 // 按批次进行写入，提高写入效率
 void FileMapper::write_batch(std::set<std::string> values) {
     open_file();
-    ftruncate(_fd,file_size);
+    ftruncate(_fd, file_size);
     do_map();
     size_t offset;
     for(const auto& s:values){
         offset = _cur_size * _element_length;
         const char* tmp = s.c_str();
-        memcpy(_fmap+offset,tmp,_element_length);
+        memcpy(_fmap+offset, tmp, _element_length);
         _cur_size++;
     }
     un_map();

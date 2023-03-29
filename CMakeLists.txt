@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12.2)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+set(CMAKE_OSX_SYSROOT /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk)
 project(Inverted_LSM)
 
 set(CMAKE_CXX_STANDARD 14)

@@ -5,9 +5,10 @@
 // 针对倒排索引的LSM tree, k,v均用string表示
 #ifndef INVERTED_LSM_MEMRUN_H
 #define INVERTED_LSM_MEMRUN_H
-#include<map>
-#include<set>
-#include<vector>
+#include <string>
+#include <map>
+#include <set>
+#include <vector>
 
 class MemRUN {
 public:
