@@ -27,6 +27,7 @@ void Server::start() {
         conn = accept(_listenfd, (struct sockaddr*)&clientAddr, &clientAddrLen);
         if(conn<0){
             perror("Accept error!\n");
+            continue;
         }
         inet_ntop(AF_INET, &clientAddr.sin_addr, clientIP, INET_ADDRSTRLEN);
         printf("Connect from %s\n",clientIP);
@@ -60,7 +61,9 @@ void Server::start() {
                 std::string res_str;
                 for(auto s:res){
                     res_str.append(s);
+                    res_str.append(",");
                 }
+                res_str = res_str.substr(0, res_str.length() - 1);
                 res_str.append("\n");
                 send(conn,res_str.c_str(),res_str.length(),0);
                 printf("Send result with length: %d\n",res_str.length());
@@ -70,10 +73,9 @@ void Server::start() {
                 printf("Close socket\n");
                 return;
             }
-            // 打印错误信息
             else {
-                send(conn,res_err.c_str(),res_err.length(),0);
-                printf("Error input : %s \n",buf);
+//                send(conn,res_err.c_str(),res_err.length(),0);
+//                printf("Error input : %s \n",buf);
             }
 
         }

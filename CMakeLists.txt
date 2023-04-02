@@ -4,14 +4,7 @@ set(CMAKE_OSX_SYSROOT /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk)
 project(Inverted_LSM)
 
 set(CMAKE_CXX_STANDARD 14)
-
-set(STATIC_LIB_SRC jLSM.cpp)
-find_package(JNI REQUIRED)
-include_directories(${JNI_INCLUDE_DIRS})
-include_directories(jni)
-include_directories(./)
-add_library(lsm_static_lib STATIC ${STATIC_LIB_SRC})
-
+# set(CMAKE_SYSTEM_PROCESSOR arm)
 
 add_executable(Inverted_LSM
         main.cpp

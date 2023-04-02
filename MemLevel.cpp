@@ -19,13 +19,13 @@ MemLevel::~MemLevel() {
 }
 
 MemRUN *MemLevel::get_memrun(const std::string& key) {
-
     // 如果包含给定key，直接返回
     if(_memruns.count(key)==1){
         return _memruns[key];
     }
     // 否则，创建memrun后返回
     else{
+        _mem_keys.insert(key);
         MemRUN* memrun = new MemRUN(_element_length,_vsize_threshold,key);
         _memruns[key] = memrun;
         return memrun;

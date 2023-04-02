@@ -9,13 +9,14 @@
 
 2. 参考`CMakeLists.txt`文件的结构，一共 2 个可执行的程序，分别命名为 test_insert_operation 和 Inverted_LSM。
 
-   * `test_insert_operation` 是将数据读取到 LSM_Tree 中并构建出索引结构。
+   * `test_insert_operation` 是将数据读取到 LSM_Tree 中并构建出索引结构的测试程序。
    
 
    * `Inverted_LSM` 是启动 socket 程序，将入口暴露到 localhost:9200 上提供给用户执行 query 使用的。可以参考 `client_test.py`的写法。
 
 3. 在 IDE 中运行的时候请注意，项目的运行目录（Working Directory）需要设置为项目根目录，否则索引文件不会创建到指定的 `index_file` 路径下。
 
+4. 在 ARM 架构机器上运行请反注释掉 `CMakeLists.txt` 文件中的 `set(CMAKE_SYSTEM_PROCESSOR arm)` 一行。
 
 
 # 实现细节
