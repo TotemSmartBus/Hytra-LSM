@@ -1,9 +1,8 @@
 #include <iostream>
-#include"LSM.h"
-#include <sys/socket.h>
 #include "Server.h"
 #include <fstream>
-#include <time.h>
+#include <ctime>
+
 extern LSM* load_lsm_config();
 
 int main() {

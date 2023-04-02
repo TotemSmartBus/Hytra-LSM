@@ -4,6 +4,7 @@ set(CMAKE_OSX_SYSROOT /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk)
 project(Inverted_LSM)
 
 set(CMAKE_CXX_STANDARD 14)
+# set(CMAKE_SYSTEM_PROCESSOR arm)
 
 add_executable(Inverted_LSM
         main.cpp
