@@ -18,7 +18,7 @@ Server::Server(LSM *l) : _l(l) {
     _listenfd = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(9200);
+    addr.sin_port = htons(9201);
     addr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(_listenfd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
@@ -40,6 +40,10 @@ Server::~Server() {
 void Server::newConfig(std::string date, std::string path) {
     LSM *l = load_lsm_config(path);
     _l = l;
+    if(_map.count(date) == 1) {
+        free(_map[date]);
+    }
+    printf("Add new tree for %s", date.c_str());
     _map[date] = l;
 }
 
