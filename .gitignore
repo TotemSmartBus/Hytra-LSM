@@ -55,3 +55,14 @@ _deps
 *.exe
 *.out
 *.app
+
+
+*.swp
+*.ninja
+.ninja*
+libskia.*
+example
+example.png
+include
+skia_compile_arguments.txt
+skia_link_arguments.txt
