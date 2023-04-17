@@ -43,7 +43,7 @@ void Server::newConfig(std::string date, std::string path) {
     if(_map.count(date) == 1) {
         free(_map[date]);
     }
-    printf("Add new tree for %s", date.c_str());
+    printf("Add new tree for %s\n", date.c_str());
     _map[date] = l;
 }
 
