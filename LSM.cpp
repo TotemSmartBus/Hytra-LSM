@@ -184,7 +184,7 @@ std::set<std::string> LSM::get_items_for_key(std::string key) {
 
 
 void LSM::insert_kv(const std::string &k, std::string v) {
-    // 采用lazy模式进行更新，直接插入记录
+    // 采用lazy模式进行更新，直接插入m记录
     MemRUN *memrun = _mem_level->get_memrun(k);
     memrun->add_v(v);
     if (memrun->is_full()) {

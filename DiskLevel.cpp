@@ -57,6 +57,10 @@ DiskRUN *DiskLevel::get_run(std::string key) {
 
 }
 
+int DiskLevel::get_size() {
+    return _disk_maps.size();
+}
+
 
 
 

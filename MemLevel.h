@@ -12,6 +12,7 @@ public :
     ~MemLevel();
     MemRUN* get_memrun(const std::string& key);
     bool contains_key(const std::string& key);
+    int get_size();
 private:
     unsigned int _element_length;
     unsigned int _vsize_threshold;
