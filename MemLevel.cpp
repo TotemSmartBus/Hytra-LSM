@@ -37,3 +37,8 @@ bool MemLevel::contains_key(const std::string& key) {
 
     return _mem_keys.count(key)==1;
 }
+
+
+int MemLevel::get_size() {
+    return _mem_keys.size();
+}

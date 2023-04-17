@@ -6,12 +6,12 @@
 #include <sys/socket.h>
 #include <fstream>
 #include <time.h>
-extern LSM* load_lsm_config();
+extern LSM* load_default_lsm_config();
 
 void test_insert_kv(LSM* l);
 int main() {
 
-    LSM* l = load_lsm_config();
+    LSM* l = load_default_lsm_config();
     test_insert_kv(l);
     delete l;
     return 0;
