@@ -5,9 +5,9 @@
 #include <iostream>
 #include "DiskRUN.h"
 
-extern DiskRUN* diskRun;
-extern void DiskRUN::add_batch(std::set<std::string> s) {};
-extern std::vector<std::string> DiskRUN::get_all_elements() {};
+//extern DiskRUN* diskRun;
+//extern void DiskRUN::add_batch(std::set<std::string> s);
+//extern std::vector<std::string> DiskRUN::get_all_elements();
 
 
 int main() {
