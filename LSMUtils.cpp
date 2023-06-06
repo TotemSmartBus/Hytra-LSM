@@ -7,11 +7,16 @@
 
 #include<string>
 #include <fstream>
+#include <iostream>
+#include <cstring>
 #include "LSM.h"
 
 
 LSM *load_lsm_config(std::string config_file) {
+//    std::ifstream  put_file("./config")
     std::ifstream config(config_file);
+    if(!config) std::cerr << "Error: " << strerror(errno);
+
     std::string line;
     std::map<std::string, std::string> merge_map;
     std::vector<std::vector<std::string>> keys_per_level;
@@ -21,11 +26,13 @@ LSM *load_lsm_config(std::string config_file) {
 
     unsigned int mask = 0;
     unsigned int element_length = 0;
+
+
     if (config) {
         while (getline(config, line)) {
-            /*if(line.find('\r')==line.length()-1){
+            if(!line.empty() && line.find('\r')==line.length()-1){
                 line.erase(line.length()-1);
-            }*/
+            }
 
             if (line == "merge_map") {
                 mask = 0;
@@ -43,11 +50,13 @@ LSM *load_lsm_config(std::string config_file) {
                 std::string value = line.substr(l + 1, line.size() - l - 1);
                 switch (mask) {
                     case 0: {
+                        // 记录上一层中的 run 与下一层哪一个 run 合并；一个 run 对应一个 key（cubeid）
                         merge_map[key] = value;
                     }
                         break;
 
                     case 1: {
+                        // 记录每一层的 run 对应的 key 值；相当于每个 level 有哪些 cubeid
                         unsigned int i = std::atoi(key.c_str());
                         while (keys_per_level.size() <= i) {
                             keys_per_level.push_back(std::vector<std::string>());
@@ -57,11 +66,13 @@ LSM *load_lsm_config(std::string config_file) {
                         break;
 
                     case 2: {
+                        // 记录每一层的 run 对应的元素数量阈值
                         unsigned int j = std::atoi(value.c_str());
                         element_size_threshold_per_level.push_back(j);
                     }
                         break;
                     case 3: {
+                        // 所有的 run 的 element_size 设为相同
                         unsigned int k = std::atoi(value.c_str());
                         element_length = k;
                     }
@@ -82,7 +93,7 @@ LSM *load_lsm_config(std::string config_file) {
 }
 
 LSM *load_default_lsm_config() {
-    return load_lsm_config("./config/empty_lsm_config.config");
+    return load_lsm_config("./config/cubetrip.config");
 }
 
 #endif //INVERTED_LSM_LSMUTILS_H

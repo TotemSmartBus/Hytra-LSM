@@ -46,6 +46,7 @@ private:
     // 所有的run的element_size设为相同
     std::map<std::string, MemRUN *> _memruns_for_key; //记录每个key对应的 MemRUN，插入k,v时用
 
+    bool shouldExpand(DiskRUN *to_merge_run);
 };
 
 

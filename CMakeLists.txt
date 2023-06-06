@@ -16,7 +16,7 @@ add_executable(Inverted_LSM
         MemLevel.cpp
         Server.cpp
         LSMUtils.cpp
-        )
+        Server.cpp)
 
 add_executable(test_insert_operation
         test_insert_operation.cpp
@@ -29,3 +29,9 @@ add_executable(test_insert_operation
         LSMUtils.cpp
 
 )
+
+add_executable(test_filemapper_put_and_get
+        test_filemapper_put_and_get.cpp
+        DiskLevel.cpp
+        DiskRUN.cpp
+        FileMapper.cpp)

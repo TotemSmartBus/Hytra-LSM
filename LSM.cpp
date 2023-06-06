@@ -16,22 +16,41 @@ LSM::LSM(std::map<std::string, std::string> merge_maps, std::vector<std::vector<
     unsigned int level_num = _runs_per_level.size();
 
     // 不直接初始化，而是等到真实读写时再创建对应的run,避免创建大量空run浪费资源
-    for (unsigned int i = 0; i < level_num; i++) {
+//    for (unsigned int i = 0; i < level_num; i++) {
+//
+//        if (i == 0) { // 初始化C_0
+//            std::vector<std::string> keys = _keys_per_level[i];
+//            unsigned int ele_length = _element_length_per_level[i];
+//            unsigned int ele_size_threshold = _element_size_threshold_per_level[i];
+//            _mem_level = new MemLevel(ele_length, ele_size_threshold, keys);
+//
+//        } else {  // 初始化 Disk level
+//            // i  = 1, 2, ..., level_num - 1
+//            // disklevel: i - 1; _keys_per_level: i
+//            std::vector<std::string> keys = _keys_per_level[i];
+//            unsigned int ele_length = _element_length_per_level[i];
+//            unsigned int ele_size_threshold = _element_size_threshold_per_level[i];
+//            unsigned int run_size = _runs_per_level[i];
+//            DiskLevel *diskLevel = new DiskLevel(i - 1, run_size, ele_size_threshold, ele_length, keys);
+//            _disk_levels.push_back(diskLevel);
+//        }
+//    }
 
+    // 2023.06.05 modified by wty
+    for (unsigned int i = 0; i < level_num; i++) {
         if (i == 0) { // 初始化C_0
             std::vector<std::string> keys = _keys_per_level[i];
             unsigned int ele_length = _element_length_per_level[i];
             unsigned int ele_size_threshold = _element_size_threshold_per_level[i];
             _mem_level = new MemLevel(ele_length, ele_size_threshold, keys);
-
-        } else {  // 初始化 Disk level
-            std::vector<std::string> keys = _keys_per_level[i];
-            unsigned int ele_length = _element_length_per_level[i];
-            unsigned int ele_size_threshold = _element_size_threshold_per_level[i];
-            unsigned int run_size = _runs_per_level[i];
-            DiskLevel *diskLevel = new DiskLevel(i - 1, run_size, ele_size_threshold, ele_length, keys);
-            _disk_levels.push_back(diskLevel);
         }
+
+        std::vector<std::string> keys = _keys_per_level[i];
+        unsigned int ele_length = _element_length_per_level[i];
+        unsigned int ele_size_threshold = _element_size_threshold_per_level[i];
+        unsigned int run_size = _runs_per_level[i];
+        DiskLevel *diskLevel = new DiskLevel(i, run_size, ele_size_threshold, ele_length, keys);
+        _disk_levels.push_back(diskLevel);
     }
 
 }
@@ -44,13 +63,20 @@ LSM::~LSM() {
     delete _mem_level;
 }
 
+// 2023.06.05 created by wty
+bool LSM::shouldExpand (DiskRUN *to_merge_run) {
+    return (_disk_levels.size() <= 1 || (_merge_maps.count(to_merge_run->get_key()) != 1) ||
+    _merge_maps[to_merge_run->get_key()]==to_merge_run->get_key());
+}
 
+// 传参 memrun 和 diskrun
 void LSM::merge_memruns_to_level(MemRUN *cur_run, DiskRUN *to_merge_run) {
-    std::vector<std::string> cur_values = cur_run->get_all_elements();
-    std::vector<std::string> values = to_merge_run->get_all_elements();
-    unsigned int ele_length = _element_length_per_level[0];
-    std::set<std::string> new_value_set;
+    std::vector<std::string> cur_values = cur_run->get_all_elements();   // 获取当前要合并的 run 的所有值
+    std::vector<std::string> values = to_merge_run->get_all_elements();  // 获取将要合并到的 run 的所有值
+    unsigned int ele_length = _element_length_per_level[0]; // 获取 memrun 的元素长度
+    std::set<std::string> new_value_set;                    // 新的值的集合
 
+    // 把 memrun 和 diskrun 的值都加入到新的集合中去
     for (const auto &s: cur_values) {
         new_value_set.insert(s);
     }
@@ -58,10 +84,10 @@ void LSM::merge_memruns_to_level(MemRUN *cur_run, DiskRUN *to_merge_run) {
     for (const auto &s: values) {
         new_value_set.insert(s);
     }
-    unsigned int new_element_num = new_value_set.size();
-    unsigned int new_size = new_element_num * ele_length;
+    unsigned int new_element_num = new_value_set.size();   // 获取新的集合的 size，即集合中值的数量
+    unsigned int new_size = new_element_num * ele_length;  // 集合中值的数量 * 值的长度
 
-    to_merge_run->clear();
+    to_merge_run->clear();  // 要合并到的 diskrun 清空
 
     // 合并后的值写入到下一层中，如果超过设定的阈值则需要临时扩容
     if (new_element_num > to_merge_run->get_vsize_threshold()) {
@@ -77,18 +103,33 @@ void LSM::merge_memruns_to_level(MemRUN *cur_run, DiskRUN *to_merge_run) {
     printf("merge level 0 mem run :%s to level 0 disk run :%s\n", cur_run->get_key().c_str(),
            to_merge_run->get_key().c_str());
 
-    if (to_merge_run->isfull()) {  // 决定是否合并到下一层
-        // 如果当前run在下一层有对应的run进行合并，则合并到下一层
-        if ((_merge_maps.count(to_merge_run->get_key()) == 1) && _disk_levels.size() > 1) {
+    // 看合并到的 diskrun 是不是也满了，从而决定是否继续合并到下一层
+    if (to_merge_run->isfull()) {
+
+        if (shouldExpand(to_merge_run)) {
+            to_merge_run -> expand();
+        } else {
+            // 如果当前 run 在下一层有对应的run进行合并，则合并到下一层
             DiskRUN *next_run = _disk_levels[1]->get_run(_merge_maps[to_merge_run->get_key()]);
-
-            merge_next_level(to_merge_run, next_run, 2);// cur_run->clear();
+            merge_next_level(to_merge_run, next_run, 1);// cur_run->clear();
         }
 
-            // 否则，当前run当作最后一层直接在当前映射文件基础上扩容并调整阈值
-        else {
-            to_merge_run->expand();
-        }
+//        if ((_merge_maps.count(to_merge_run->get_key()) == 1) && _disk_levels.size() > 1) {
+//            if(_merge_maps[to_merge_run->get_key()]==to_merge_run->get_key()){
+//                to_merge_run->expand();
+//
+//            }
+//            else {
+//                DiskRUN *next_run = _disk_levels[1]->get_run(_merge_maps[to_merge_run->get_key()]);
+//
+//                merge_next_level(to_merge_run, next_run, 2);// cur_run->clear();
+//            }
+//        }
+//
+//            // 否则，当前run当作最后一层直接在当前映射文件基础上扩容并调整阈值
+//        else {
+//            to_merge_run->expand();
+//        }
     }
 
 }
@@ -187,11 +228,18 @@ void LSM::insert_kv(const std::string &k, std::string v) {
     // 采用lazy模式进行更新，直接插入m记录
     MemRUN *memrun = _mem_level->get_memrun(k);
     memrun->add_v(v);
+
     if (memrun->is_full()) {
         if (_merge_maps.count(k) == 0) {
             printf("No diskrun for memrun key : %s\n", k.c_str());
         } else {
-            DiskRUN *diskrun = _disk_levels[0]->get_run(_merge_maps[k]);
+            // 取出磁盘第 0 层中 key = 2023-05-20@894@1 的 run
+//            DiskRUN *diskrun = _disk_levels[0]->get_run(_merge_maps[k]);
+
+            // 2023.06.05 modified by wty
+            // 一个持久化的过程，先放到第 0 层的 diskrun 里面，要合并后面再操作
+            DiskRUN *diskrun = _disk_levels[0]->get_run(k);
+
             merge_memruns_to_level(memrun, diskrun);
         }
     }
