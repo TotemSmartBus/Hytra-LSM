@@ -35,3 +35,13 @@ add_executable(test_filemapper_put_and_get
         DiskLevel.cpp
         DiskRUN.cpp
         FileMapper.cpp)
+
+add_executable(test_file_write
+        test_file_write.cpp
+        DiskLevel.cpp
+        DiskRUN.cpp
+        FileMapper.cpp)
+
+add_executable(test_filemapper
+        test_filemapper.cpp
+        FileMapper.cpp)
