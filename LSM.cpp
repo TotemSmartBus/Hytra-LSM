@@ -110,7 +110,11 @@ void LSM::merge_memruns_to_level(MemRUN *cur_run, DiskRUN *to_merge_run) {
             to_merge_run -> expand();
         } else {
             // 如果当前 run 在下一层有对应的run进行合并，则合并到下一层
-            DiskRUN *next_run = _disk_levels[1]->get_run(_merge_maps[to_merge_run->get_key()]);
+            std::string next_key = _merge_maps[to_merge_run->get_key()];
+            DiskRUN *next_run = _disk_levels[1]->get_run(next_key);
+            if( next_run == NULL) {
+                next_run = _disk_levels[1]->create_run(next_key);
+            }
             merge_next_level(to_merge_run, next_run, 1);// cur_run->clear();
         }
 
@@ -181,7 +185,13 @@ void LSM::merge_next_level(DiskRUN *cur_run, DiskRUN *to_merge_run, unsigned int
             // 否则，需要合并到下一层对应的run
         else {
             std::string next_key = _merge_maps[to_merge_run->get_key()];
-            DiskRUN *next_run = _disk_levels[next_level]->get_run(next_key);
+            // 2023.06.10 写错了，是 next_level + 1；原来写的是 next_level
+            DiskRUN *next_run = _disk_levels[next_level + 1]->get_run(next_key);
+
+            if( next_run == NULL) {
+                next_run = _disk_levels[next_level + 1]->create_run(next_key);
+            }
+
             merge_next_level(to_merge_run, next_run, next_level + 1);
         }
 
@@ -205,9 +215,11 @@ std::set<std::string> LSM::get_items_for_key(std::string key) {
         // 下一层没有上一层对应的diskrun
         unsigned int level = 0;
         while ((_merge_maps.count(key) == 1) && (level <= _disk_levels.size() - 1)) {
-            key = _merge_maps[key];
+            if (level != 0) {
+                key = _merge_maps[key];
+            }
             DiskRUN *diskRun = _disk_levels[level]->get_run(key);
-            if (diskRun->is_empty()) {
+            if (diskRun == NULL) {
                 level++;
                 continue;
             }
@@ -239,6 +251,10 @@ void LSM::insert_kv(const std::string &k, std::string v) {
             // 2023.06.05 modified by wty
             // 一个持久化的过程，先放到第 0 层的 diskrun 里面，要合并后面再操作
             DiskRUN *diskrun = _disk_levels[0]->get_run(k);
+
+            if( diskrun == NULL) {
+                diskrun = _disk_levels[0]->create_run(k);
+            }
 
             merge_memruns_to_level(memrun, diskrun);
         }

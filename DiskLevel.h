@@ -15,6 +15,7 @@ public:
     ~DiskLevel();
     void get_run(const std::string& key, DiskRUN* &diskrun);
     DiskRUN* get_run(std::string key);
+    DiskRUN* create_run(std::string key);
     int get_size();
 private:
     unsigned int _run_nums;

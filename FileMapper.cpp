@@ -58,7 +58,7 @@ std::vector<std::string> FileMapper::read_all_element(){
     }
 
     open_file();
-    ftruncate(_fd,file_size); // 读取文件为什么还分配大小？？？
+//    ftruncate(_fd,file_size); // 读取文件为什么还分配大小？？？
     do_map();
     size_t offset=0;
     char* val = new char[_element_length];
