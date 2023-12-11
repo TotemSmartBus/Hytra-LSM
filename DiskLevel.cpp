@@ -48,13 +48,14 @@ DiskRUN *DiskLevel::get_run(std::string key) {
     if(_disk_maps.count(key)==1){
         return _disk_maps[key];
     }
-    // 否则，创建相应的diskrun并返回
-    else{
-        DiskRUN* diskrun = new DiskRUN(_run_element_length,key,_level,_run_size_threshold);
-        _disk_maps[key] = diskrun;
-        return diskrun;
-    }
 
+    return NULL;
+}
+
+DiskRUN *DiskLevel::create_run(std::string key) {
+    DiskRUN* diskrun = new DiskRUN(_run_element_length,key,_level,_run_size_threshold);
+    _disk_maps[key] = diskrun;
+    return diskrun;
 }
 
 int DiskLevel::get_size() {

@@ -6,6 +6,9 @@
 #include <sys/socket.h>
 #include <fstream>
 #include <time.h>
+#include <cstring>
+
+
 extern LSM* load_default_lsm_config();
 
 void test_insert_kv(LSM* l);
@@ -20,7 +23,10 @@ int main() {
 
 
 void test_insert_kv(LSM* l){
-    std::ifstream put_file("./operation/put.config");
+//    std::ifstream put_file("./operation/put.config");
+    std::ifstream  put_file("./config/empty_lsm_config.config");
+//    std::ifstream put_file("main.cpp");
+//    if(!put_file) std::cerr << "Error: " << strerror(errno);
     std::string line;
     auto start = clock();
     int count = 0;
@@ -36,8 +42,8 @@ void test_insert_kv(LSM* l){
     }
     auto end =clock();
     printf("Total time for %d insert operations : %f seconds\n",count,(double)(end-start)/CLOCKS_PER_SEC);
-
 }
+
 
 
 

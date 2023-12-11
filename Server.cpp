@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <cstring>
+#include <unistd.h>
 
 extern LSM *load_lsm_config(std::string path);
 
@@ -40,10 +41,12 @@ Server::~Server() {
 void Server::newConfig(std::string date, std::string path) {
     LSM *l = load_lsm_config(path);
     _l = l;
+    // 如果这个 _map 里面已经包含了日期 date，那就释放这片内存
     if(_map.count(date) == 1) {
         free(_map[date]);
     }
     printf("Add new tree for %s\n", date.c_str());
+    // _map 里再加入这个 date 对应的 lsmtree
     _map[date] = l;
 }
 
@@ -97,6 +100,8 @@ void Server::handlePut(char buf[], int conn, int len) {
     std::string value = tmp.substr(pos2 + 1, len - pos2);
     printf("Insert %s : %s\n", key.c_str(), value.c_str());
     _l->insert_kv(key, value);
+    const char *a = RES_OK.c_str();
+//    write (conn, RES_OK.c_str(), RES_OK.length()) ;
     send(conn, RES_OK.c_str(), RES_OK.length(), 0);
 }
 
@@ -104,20 +109,38 @@ void Server::handleGet(char buf[], int conn, int len) {
     std::string tmp = buf;
     unsigned int pos1 = tmp.find(":");
     unsigned int pos2 = tmp.find(",");
-    std::string date = tmp.substr(pos1 + 1, pos2 - pos1 - 1);
-    std::string key = tmp.substr(pos2 + 1, len - pos2);
+    std::string key = tmp.substr(pos1 + 1, pos2 - pos1 - 1);
     std::string res_str;
-    if(_map.count(date) == 1) {
-        auto res = _map[date]->get_items_for_key(key);
-        for (auto s: res) {
-            res_str.append(s);
-            res_str.append(",");
-        }
-        res_str = res_str.substr(0, res_str.length() - 1);
+
+    auto res = _l->get_items_for_key(key);
+    for (auto s: res) {
+        res_str.append(s);
+        res_str.append(",");
     }
+    res_str = res_str.substr(0, res_str.length() - 1);
+
     res_str.append("\n");
     send(conn, res_str.c_str(), res_str.length(), 0);
 }
+
+//void Server::handleGet(char buf[], int conn, int len) {
+//    std::string tmp = buf;
+//    unsigned int pos1 = tmp.find(":");
+//    unsigned int pos2 = tmp.find(",");
+//    std::string date = tmp.substr(pos1 + 1, pos2 - pos1 - 1);
+//    std::string key = tmp.substr(pos2 + 1, len - pos2);
+//    std::string res_str;
+//    if(_map.count(date) == 1) {
+//        auto res = _map[date]->get_items_for_key(key);
+//        for (auto s: res) {
+//            res_str.append(s);
+//            res_str.append(",");
+//        }
+//        res_str = res_str.substr(0, res_str.length() - 1);
+//    }
+//    res_str.append("\n");
+//    send(conn, res_str.c_str(), res_str.length(), 0);
+//}
 
 void Server::handleStatus(char buf[], int conn, int len) {
     std::string res_str;
